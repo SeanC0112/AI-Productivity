@@ -33,6 +33,7 @@ def main():
         ckpt_dir=str(model_path),
         max_seq_len=256,
         max_batch_size=4,
+        quantization_mode="8bit",
         device=device,
         world_size=1,
     )
