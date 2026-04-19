@@ -6,17 +6,17 @@ from tkinter import *
 window = Tk()
 window.image = PhotoImage(file="Cat/Idle/tile000.png")
 window.wm_attributes("-topmost", True)
-window.geometry("+600+200")
+window.geometry("+600+300")
 window.wm_attributes("-transparent", True)
 # Set the root window background color to a transparent color
-window.config(bg='systemTransparent')
+window.config(bg='gray')
 window.overrideredirect(True)
 
 # window.mainloop()
 def get_updated_display():
     display1 = Label(window, image=window.image)
     display1.grid(row=1, column=0, padx=0, pady=0)  #Display 1
-    display1.config(bg='systemTransparent', takefocus=1)
+    display1.config( takefocus=1)
     # display1.pack()
     return display1
 
