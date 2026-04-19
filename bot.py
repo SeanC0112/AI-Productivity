@@ -1,5 +1,5 @@
 import requests, sys, base64, time, io
-from PIL import ImageGrab
+from PIL import ImageGrab, Image
 from datetime import datetime
 from tkinter import *
 
@@ -13,11 +13,12 @@ window.config(bg='systemTransparent')
 window.overrideredirect(True)
 
 # window.mainloop()
-display1 = Label(window, image=window.image)
-display1.grid(row=1, column=0, padx=0, pady=0)  #Display 1
-display1.config(bg='systemTransparent')
-display1.pack()
-display1.mainloop()
+def get_updated_display():
+    display1 = Label(window, image=window.image)
+    display1.grid(row=1, column=0, padx=0, pady=0)  #Display 1
+    display1.config(bg='systemTransparent', takefocus=1)
+    # display1.pack()
+    return display1
 
 
 def capture_screenshot():
@@ -63,11 +64,16 @@ def send_to_ollama(image_base64, prompt):
         print(f"❌ Error: {e}")
         sys.exit(1)
 
-if __name__ == "__main__":
-    while True:
-        # screenshot = capture_screenshot()
-        # image_base64 = screenshot_to_base64(screenshot)
-        # prompt = "What is on my screen? Describe in detail."
-        # send_to_ollama(image_base64, prompt)
-
-        time.sleep(10)  # Capture every 10 seconds
+i = 0
+while True:
+    window.image = PhotoImage(file=f"Cat/Idle/tile00{i}.png")
+    display = get_updated_display()
+    window.update()
+    time.sleep(0.1)
+    display.destroy()
+    i += 1
+    i %= 6
+    # screenshot = capture_screenshot()
+    # image_base64 = screenshot_to_base64(screenshot)
+    # prompt = "What is on my screen? Describe in detail."
+    # send_to_ollama(image_base64, prompt)
