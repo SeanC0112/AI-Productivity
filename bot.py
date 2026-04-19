@@ -4,11 +4,21 @@ from datetime import datetime
 from tkinter import *
 
 window = Tk()
-window.overrideredirect(True)
+window.image = PhotoImage(file="Cat/Idle/tile000.png")
 window.wm_attributes("-topmost", True)
 window.geometry("+600+200")
-display1 = Label(window)
+window.wm_attributes("-transparent", True)
+# Set the root window background color to a transparent color
+window.config(bg='systemTransparent')
+window.overrideredirect(True)
+
+# window.mainloop()
+display1 = Label(window, image=window.image)
 display1.grid(row=1, column=0, padx=0, pady=0)  #Display 1
+display1.config(bg='systemTransparent')
+display1.pack()
+display1.mainloop()
+
 
 def capture_screenshot():
     """Capture the current screen."""
