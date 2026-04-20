@@ -2,19 +2,34 @@ import requests, sys, base64, time, io
 from PIL import ImageGrab, Image
 from datetime import datetime
 from tkinter import *
+import os
 
-window = Tk()
-window.image = PhotoImage(file="Cat/Idle/tile000.png")
-window.wm_attributes("-topmost", True)
-window.wm_attributes("-transparent", True)
-window.config(bg='gray')
-window.overrideredirect(True)
-window.update_idletasks()
-window.geometry("+600+300")
+class CatChatBot:
+    window = Tk()
+    display1 = Label(window, image=window.image)
+    state = ""
 
-display1 = Label(window, image=window.image)
-display1.grid(row=1, column=0, padx=0, pady=0)  #Display 1
-display1.config( takefocus=1)
+    def __init__(self):
+        self.window.image = PhotoImage(file="Cat/Idle/tile000.png")
+        self.window.wm_attributes("-topmost", True)
+        self.window.wm_attributes("-transparent", True)
+        self.window.config(bg='gray')
+        self.window.overrideredirect(True)
+        self.window.update_idletasks()
+        self.window.geometry("+600+300")
+
+        self.display1.grid(row=1, column=0, padx=0, pady=0)  #Display 1
+        self.display1.config( takefocus=1)
+
+    def update_image(self, image_path):
+        self.window.image = PhotoImage(file=image_path)
+        self.display1.config(image=self.window.image)
+        self.window.update()
+
+    def main(self):
+        pass
+
+    
 
 
 def capture_screenshot():
