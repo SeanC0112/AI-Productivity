@@ -6,19 +6,15 @@ from tkinter import *
 window = Tk()
 window.image = PhotoImage(file="Cat/Idle/tile000.png")
 window.wm_attributes("-topmost", True)
-window.geometry("+600+300")
 window.wm_attributes("-transparent", True)
-# Set the root window background color to a transparent color
 window.config(bg='gray')
 window.overrideredirect(True)
+window.update_idletasks()
+window.geometry("+600+300")
 
-# window.mainloop()
-def get_updated_display():
-    display1 = Label(window, image=window.image)
-    display1.grid(row=1, column=0, padx=0, pady=0)  #Display 1
-    display1.config( takefocus=1)
-    # display1.pack()
-    return display1
+display1 = Label(window, image=window.image)
+display1.grid(row=1, column=0, padx=0, pady=0)  #Display 1
+display1.config( takefocus=1)
 
 
 def capture_screenshot():
@@ -67,10 +63,9 @@ def send_to_ollama(image_base64, prompt):
 i = 0
 while True:
     window.image = PhotoImage(file=f"Cat/Idle/tile00{i}.png")
-    display = get_updated_display()
+    display1.config(image=window.image)
     window.update()
     time.sleep(0.1)
-    display.destroy()
     i += 1
     i %= 6
     # screenshot = capture_screenshot()
