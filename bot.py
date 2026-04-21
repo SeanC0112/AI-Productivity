@@ -20,8 +20,6 @@ class CatChatBot:
         self.window.update_idletasks()
         self.window.geometry("+600+300")
 
-        
-
     def update_image(self, image_path):
         self.window.image = PhotoImage(file=image_path)
         display1 = Label(self.window, image=self.window.image)
@@ -35,20 +33,22 @@ class CatChatBot:
         if(self.state == ""):
             return
         frame_current = self.frame_min + self.frame
-        image_path = f"Cat/{self.state}/tile{"0" in range(2-math.floor(frame_current))}{frame_current}.png"
+        zeroes = "".join("0" for i in range(2-math.floor(math.log10(max(frame_current, 1)))))
+        image_path = f"Cat/{self.state}/tile{zeroes}{frame_current}.png"
         self.update_image(image_path)
         self.frame += 1
         self.frame %= self.frame_max
 
     def set_state(self, state):
         self.state = state
-        self.frame = 0 #convert to ints
-        self.frame_max = len(os.listdir(f"Cat/{state}"))
-        self.frame_min = os.listdir(f"Cat/{state}")[0].split("tile")[1].split(".png")[0]
+        # self.frame = 0 #convert to ints
+        if(self.state == ""):
+            return
+        self.frame_max = int(len(os.listdir(f"Cat/{state}")))
+        print(sorted(os.listdir(f"Cat/{state}")))
+        self.frame_min = int(sorted(os.listdir(f"Cat/{state}"))[0].split("tile")[1].split(".png")[0])
+        print("frame min ", self.frame_min)
         
-
-    
-
 
 def capture_screenshot():
     """Capture the current screen."""
