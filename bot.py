@@ -5,7 +5,7 @@ from tkinter import *
 import os
 import math
 
-class CatChatBot:
+class CatImage:
     window = Tk()
     state = ""
     frame = 0
@@ -43,62 +43,73 @@ class CatChatBot:
         self.state = state
         # self.frame = 0 #convert to ints
         if(self.state == ""):
+            self.window.withdraw()
             return
+        else:
+            self.window.deiconify()
         self.frame_max = int(len(os.listdir(f"Cat/{state}")))
         print(sorted(os.listdir(f"Cat/{state}")))
         self.frame_min = int(sorted(os.listdir(f"Cat/{state}"))[0].split("tile")[1].split(".png")[0])
         print("frame min ", self.frame_min)
         
+class Bot:
+    cat = CatImage()
+    curr_screenshot = 0
 
-def capture_screenshot():
-    """Capture the current screen."""
-    screenshot = ImageGrab.grab()
-    return screenshot
+    def __init__(self):
+        self.cat.set_state("")
 
-def screenshot_to_base64(image):
-    buffer = io.BytesIO()
-    image.save(buffer, format="PNG")
-    img_str = base64.b64encode(buffer.getvalue()).decode()
-    return img_str
+    def capture_screenshot(self):
+        """Capture the current screen."""
+        screenshot = ImageGrab.grab()
+        return screenshot
 
-def send_to_ollama(image_base64, prompt):
-    """Send screenshot to Ollama vision model."""
-    try:
-        response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={
-                "model": "gemma4:e2b",
-                "prompt": prompt,
-                "images": [image_base64],
-                "stream": True,
-            },
-            timeout=300,
-            stream=True,
-        )
+    def screenshot_to_base64(self, image):
+        buffer = io.BytesIO()
+        image.save(buffer, format="PNG")
+        img_str = base64.b64encode(buffer.getvalue()).decode()
+        return img_str
 
-        if response.status_code != 200:
-            print(f"❌ Error: {response.status_code}")
-            print(response.text)
-            return
+    def send_to_ollama(self, image_base64, prompt):
+        """Send screenshot to Ollama vision model."""
+        try:
+            response = requests.post(
+                "http://localhost:11434/api/generate",
+                json={
+                    "model": "gemma4:e2b",
+                    "prompt": prompt,
+                    "images": [image_base64],
+                    "stream": True,
+                    "json": {"type":"object", "properties":{"response":"string", "productive":"boolean"}}
+                },
+                timeout=300,
+                stream=True,
+            )
 
-        for line in response.iter_lines():
-            if line:
-                data = line.json() if hasattr(line, 'json') else __import__('json').loads(line)
-                print(data.get("response", ""), end="", flush=True)
+            if response.status_code != 200:
+                print(f"❌ Error: {response.status_code}")
+                print(response.text)
+                return
 
-    except requests.exceptions.ConnectionError:
-        print("❌ Cannot connect to Ollama on localhost:11434")
-        sys.exit(1)
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        sys.exit(1)
+            for line in response.iter_lines():
+                if line:
+                    data = line.json() if hasattr(line, 'json') else __import__('json').loads(line)
+                    print(data.get("response", ""), end="", flush=True)
+                    print(data.get("productive"))
 
-cat = CatChatBot()
+        except requests.exceptions.ConnectionError:
+            print("❌ Cannot connect to Ollama on localhost:11434")
+            sys.exit(1)
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            sys.exit(1)
+
+    def main(self):
+        self.curr_screenshot = self.capture_screenshot()
+        self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
+        self.send_to_ollama(self.curr_screenshot, "Is this productive?")
+
+
+bot = Bot()
 while True:
-    cat.set_state("Idle")
-    cat.main()
-    time.sleep(0.1)
-    # screenshot = capture_screenshot()
-    # image_base64 = screenshot_to_base64(screenshot)
-    # prompt = "What is on my screen? Describe in detail."
-    # send_to_ollama(image_base64, prompt)
+    bot.main()
