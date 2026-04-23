@@ -111,5 +111,4 @@ class Bot:
 
 
 bot = Bot()
-while True:
-    bot.main()
+bot.main()
