@@ -2,11 +2,14 @@ import requests, sys, base64, time, io
 from PIL import ImageGrab, Image
 from datetime import datetime
 from tkinter import *
+from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtCore import QObject, pyqtSignal, QThread, QTimer
+import sys
+import json
 import os
 import math
 
 class CatImage:
-    window = Tk()
     state = ""
     frame = 0
     frame_max = 1
@@ -89,13 +92,19 @@ class Bot:
             if response.status_code != 200:
                 print(f"❌ Error: {response.status_code}")
                 print(response.text)
-                return
+                return None, None
 
+            response_text = ""
+            productive = None
+            
             for line in response.iter_lines():
                 if line:
-                    data = line.json() if hasattr(line, 'json') else __import__('json').loads(line)
-                    print(data.get("response", ""), end="", flush=True)
-                    print(data.get("productive"))
+                    data = json.loads(line)
+                    response_text += data.get("response", "")
+                    if "productive" in data:
+                        productive = data.get("productive")
+            
+            return response_text, productive
 
         except requests.exceptions.ConnectionError:
             print("❌ Cannot connect to Ollama on localhost:11434")
@@ -107,7 +116,11 @@ class Bot:
     def main(self):
         self.curr_screenshot = self.capture_screenshot()
         self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
-        self.send_to_ollama(self.curr_screenshot, "Is this productive?")
+        response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive?")
+        
+        if response_text:
+            print(f"\nResponse: {response_text}")
+            print(f"Productive: {productive}")
 
 
 bot = Bot()
