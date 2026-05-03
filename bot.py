@@ -9,31 +9,38 @@ import json
 import os
 import math
 
-class CatImage:
+
+app = QtWidgets.QApplication(sys.argv)
+productive = pyqtSignal(bool)
+
+class CatImage(QObject):
+    pixmap = QtGui.QPixmap("Cat/Idle/tile000.png")
+    label = QtWidgets.QLabel()
     state = ""
     frame = 0
     frame_max = 1
     frame_min = 0
 
     def __init__(self):
-        self.window.wm_attributes("-topmost", True)
-        self.window.wm_attributes("-transparent", True)
-        self.window.config(bg='gray')
-        self.window.overrideredirect(True)
-        self.window.update_idletasks()
-        self.window.geometry("+600+300")
+        # Remove window borders and set it to stay on top
+        self.label.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
+        # Allow the background to be transparent
+        self.label.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        self.label.setPixmap(self.pixmap)
+        self.label.move(0, 0)
 
     def update_image(self, image_path):
-        self.window.image = PhotoImage(file=image_path)
-        display1 = Label(self.window, image=self.window.image)
-        display1.grid(row=1, column=0, padx=0, pady=0)  #Display 1
-        display1.config(image=self.window.image, takefocus=1)
-        display1.focus_set()
-        self.window.update()
-        display1.destroy()
+        self.pixmap = QtGui.QPixmap(image_path)
+        self.label.setPixmap(self.pixmap)
+        self.label.show()
+
+    def clear_image(self):
+        self.label.clear()
+        self.label.hide()
 
     def main(self):
         if(self.state == ""):
+            self.clear_image
             return
         frame_current = self.frame_min + self.frame
         zeroes = "".join("0" for i in range(2-math.floor(math.log10(max(frame_current, 1)))))
@@ -45,18 +52,13 @@ class CatImage:
     def set_state(self, state):
         self.state = state
         # self.frame = 0 #convert to ints
-        if(self.state == ""):
-            self.window.withdraw()
-            return
-        else:
-            self.window.deiconify()
         self.frame_max = int(len(os.listdir(f"Cat/{state}")))
         print(sorted(os.listdir(f"Cat/{state}")))
         self.frame_min = int(sorted(os.listdir(f"Cat/{state}"))[0].split("tile")[1].split(".png")[0])
+        self.frame %= self.frame_max
         print("frame min ", self.frame_min)
         
-class Bot:
-    cat = CatImage()
+class Bot(QObject):
     curr_screenshot = 0
 
     def __init__(self):
