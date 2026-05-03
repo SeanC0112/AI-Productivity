@@ -23,4 +23,4 @@ timer2.timeout.connect(lambda: label.hide())  # Update the image every second
 timer2.start(7000)  #
 
 
-sys.exit(app.exec_())
+sys.exit(app.exec())

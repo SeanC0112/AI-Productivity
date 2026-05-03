@@ -12,8 +12,9 @@ import math
 
 app = QtWidgets.QApplication(sys.argv)
 productive = pyqtSignal(bool)
+state_signal = pyqtSignal(str)
 
-class CatImage(QObject):
+class Cat_Image(QObject):
     pixmap = QtGui.QPixmap("Cat/Idle/tile000.png")
     label = QtWidgets.QLabel()
     state = ""
@@ -28,6 +29,7 @@ class CatImage(QObject):
         self.label.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.label.setPixmap(self.pixmap)
         self.label.move(0, 0)
+        state_signal.connect(self.set_state)
 
     def update_image(self, image_path):
         self.pixmap = QtGui.QPixmap(image_path)
@@ -126,4 +128,10 @@ class Bot(QObject):
 
 
 bot = Bot()
-bot.main()
+cat = Cat_Image()
+
+cat_main = QTimer()
+cat_main.timeout.connect(lambda: cat.main())
+cat_main.start(250)
+
+sys.exit(app.exec())
