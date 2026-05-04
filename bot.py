@@ -27,7 +27,7 @@ class Cat_Image(QObject):
         # Allow the background to be transparent
         self.label.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.label.setPixmap(self.pixmap)
-        self.label.move(100, 100)
+        self.label.move(50, 50)
         bot.state_signal.connect(self.set_state)
 
     def update_image(self, image_path):
@@ -167,6 +167,7 @@ class Bot(QObject):
 
         if(self.check_has_changed(self.curr_screenshot, self.prev_screenshot, 20)):
             self.prev_screenshot = self.curr_screenshot
+            self.state_signal.emit("")
             self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
             response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive?")
             
