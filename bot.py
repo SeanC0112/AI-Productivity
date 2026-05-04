@@ -1,8 +1,7 @@
-import requests, sys, base64, time, io
-from PIL import ImageGrab, Image
-from datetime import datetime
+import requests, sys, base64, io
+from PIL import ImageGrab
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import QObject, pyqtSignal, QThread, QTimer
+from PyQt5.QtCore import QObject, QTimer
 from pydantic import BaseModel
 import sys
 import json
@@ -172,7 +171,7 @@ class Bot(QObject):
             self.prev_screenshot = self.curr_screenshot
             self.cat.set_state("")
             self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
-            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be unproductive if it is not school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs, maybe forms, discussing classroom experiences, etc, or doing a stem passion project like coding or robotics or cad, etc.")
+            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be productive if it is school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs, maybe forms, discussing classroom experiences, etc, or doing a stem passion project like coding or robotics or cad, etc.")
             
             if response_text:
                 print(f"\nResponse: {response_text}")
