@@ -52,11 +52,12 @@ class Cat_Image(QObject):
 
     def set_state(self, state):
         self.state = state
-        self.frame_max = int(len(os.listdir(f"Cat/{state}")))
-        print(sorted(os.listdir(f"Cat/{state}")))
-        self.frame_min = int(sorted(os.listdir(f"Cat/{state}"))[0].split("tile")[1].split(".png")[0])
-        self.frame %= self.frame_max
-        print("frame min ", self.frame_min)
+        if state != "":
+            self.frame_max = int(len(os.listdir(f"Cat/{state}")))
+            print(sorted(os.listdir(f"Cat/{state}")))
+            self.frame_min = int(sorted(os.listdir(f"Cat/{state}"))[0].split("tile")[1].split(".png")[0])
+            self.frame %= self.frame_max
+            print("frame min ", self.frame_min)
         
 class Productive(BaseModel):
     productive: bool
@@ -161,18 +162,18 @@ class Bot(QObject):
             sys.exit(1)
 
     def main(self):
-        self.prev_screenshot = self.curr_screenshot
         self.curr_screenshot = self.capture_screenshot()
         self.prev_screenshot = self.curr_screenshot if self.prev_screenshot is None else self.prev_screenshot
 
         if(self.check_has_changed(self.curr_screenshot, self.prev_screenshot, 20)):
+            self.prev_screenshot = self.curr_screenshot
             self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
             response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive?")
             
             if response_text:
                 print(f"\nResponse: {response_text}")
                 print(f"Productive: {productive}")
-                
+
 
             if not productive:
                 self.state_signal.emit("Melt")
