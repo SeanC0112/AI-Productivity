@@ -10,6 +10,13 @@ import sys
 from PIL import ImageGrab
 from datetime import datetime
 
+from pydantic import BaseModel
+
+
+        
+class Productive(BaseModel):
+    productive: bool
+    reasoning: str
 
 def capture_screenshot():
     """Capture the current screen."""
@@ -38,6 +45,7 @@ def send_to_ollama(image_base64, prompt):
                 "prompt": prompt,
                 "images": [image_base64],
                 "stream": True,
+                "format": Productive.model_json_schema()
             },
             timeout=300,
             stream=True,
@@ -55,6 +63,7 @@ def send_to_ollama(image_base64, prompt):
                 data = line.json() if hasattr(line, 'json') else __import__('json').loads(line)
                 print(data.get("response", ""), end="", flush=True)
         print("\n" + "-" * 50)
+        # print(response.text)
 
     except requests.exceptions.ConnectionError:
         print("❌ Cannot connect to Ollama on localhost:11434")
