@@ -20,7 +20,7 @@ class Cat_Image(QObject):
     frame_max = 1
     frame_min = 0
 
-    def __init__(self, bot):
+    def __init__(self):
         super().__init__()
         # Remove window borders and set it to stay on top
         self.label.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
@@ -28,7 +28,6 @@ class Cat_Image(QObject):
         self.label.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.label.setPixmap(self.pixmap)
         self.label.move(50, 50)
-        bot.state_signal.connect(self.set_state)
 
     def update_image(self, image_path):
         self.pixmap = QtGui.QPixmap(image_path)
@@ -65,18 +64,19 @@ class Productive(BaseModel):
     productive: bool
     reasoning: str
 
-class Bot(QObject):
-    state_signal = pyqtSignal(str)
-    
+class Bot(QObject):    
     curr_screenshot = None
     prev_screenshot = None
+
+    cat = None
 
     width = 0
     height = 0
 
-    def __init__(self):
+    def __init__(self, cat):
         super().__init__()
-        self.state_signal.emit("")
+        self.cat = cat
+        self.cat.set_state("")
         # Get screen size from PyQt5
         screen = app.primaryScreen()
         self.width = screen.geometry().width()
@@ -170,9 +170,9 @@ class Bot(QObject):
 
         if(self.check_has_changed(self.curr_screenshot, self.prev_screenshot, 20) or self.curr_screenshot == self.prev_screenshot):
             self.prev_screenshot = self.curr_screenshot
-            self.state_signal.emit("")
+            self.cat.set_state("")
             self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
-            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects?")
+            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be unproductive if it is not school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs, maybe forms, etc, or doing a stem passion project.")
             
             if response_text:
                 print(f"\nResponse: {response_text}")
@@ -180,13 +180,13 @@ class Bot(QObject):
 
 
             if not productive:
-                self.state_signal.emit("Melt")
+                self.cat.set_state("Melt")
             else:
-                self.state_signal.emit("")
+                self.cat.set_state("")
 
 
-bot = Bot()
-cat = Cat_Image(bot)
+cat = Cat_Image()
+bot = Bot(cat)
 
 cat_main = QTimer()
 cat_main.timeout.connect(lambda: cat.main())
