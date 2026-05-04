@@ -52,12 +52,14 @@ class Cat_Image(QObject):
 
     def set_state(self, state):
         self.state = state
-        if state != "":
-            self.frame_max = int(len(os.listdir(f"Cat/{state}")))
-            print(sorted(os.listdir(f"Cat/{state}")))
-            self.frame_min = int(sorted(os.listdir(f"Cat/{state}"))[0].split("tile")[1].split(".png")[0])
-            self.frame %= self.frame_max
-            print("frame min ", self.frame_min)
+        if state == "":
+            self.clear_image()
+            return
+        self.frame_max = int(len(os.listdir(f"Cat/{state}")))
+        print(sorted(os.listdir(f"Cat/{state}")))
+        self.frame_min = int(sorted(os.listdir(f"Cat/{state}"))[0].split("tile")[1].split(".png")[0])
+        self.frame %= self.frame_max
+        print("frame min ", self.frame_min)
         
 class Productive(BaseModel):
     productive: bool
