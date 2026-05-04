@@ -172,7 +172,7 @@ class Bot(QObject):
             self.prev_screenshot = self.curr_screenshot
             self.cat.set_state("")
             self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
-            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be unproductive if it is not school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs, maybe forms, etc, or doing a stem passion project.")
+            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be unproductive if it is not school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs, maybe forms, discussing classroom experiences, etc, or doing a stem passion project like coding or robotics or cad, etc.")
             
             if response_text:
                 print(f"\nResponse: {response_text}")
