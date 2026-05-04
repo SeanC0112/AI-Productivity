@@ -162,14 +162,15 @@ class Bot(QObject):
             sys.exit(1)
 
     def main(self):
+        print("bot main")
         self.curr_screenshot = self.capture_screenshot()
         self.prev_screenshot = self.curr_screenshot if self.prev_screenshot is None else self.prev_screenshot
 
-        if(self.check_has_changed(self.curr_screenshot, self.prev_screenshot, 20)):
+        if(self.check_has_changed(self.curr_screenshot, self.prev_screenshot, 20) or self.curr_screenshot == self.prev_screenshot):
             self.prev_screenshot = self.curr_screenshot
             self.state_signal.emit("")
             self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
-            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive?")
+            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects?")
             
             if response_text:
                 print(f"\nResponse: {response_text}")
