@@ -27,7 +27,7 @@ class Cat_Image(QObject):
         # Allow the background to be transparent
         self.label.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.label.setPixmap(self.pixmap)
-        self.label.move(100, 1000)
+        self.label.move(100, 100)
         bot.state_signal.connect(self.set_state)
 
     def update_image(self, image_path):
