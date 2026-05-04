@@ -1,9 +1,9 @@
 import requests, sys, base64, time, io
 from PIL import ImageGrab, Image
 from datetime import datetime
-from tkinter import *
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QObject, pyqtSignal, QThread, QTimer
+from pydantic import BaseModel
 import sys
 import json
 import os
@@ -11,8 +11,6 @@ import math
 
 
 app = QtWidgets.QApplication(sys.argv)
-productive = pyqtSignal(bool)
-state_signal = pyqtSignal(str)
 
 class Cat_Image(QObject):
     pixmap = QtGui.QPixmap("Cat/Idle/tile000.png")
@@ -22,14 +20,15 @@ class Cat_Image(QObject):
     frame_max = 1
     frame_min = 0
 
-    def __init__(self):
+    def __init__(self, bot):
+        super().__init__()
         # Remove window borders and set it to stay on top
         self.label.setWindowFlags(QtCore.Qt.FramelessWindowHint | QtCore.Qt.WindowStaysOnTopHint)
         # Allow the background to be transparent
         self.label.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.label.setPixmap(self.pixmap)
         self.label.move(100, 1000)
-        state_signal.connect(self.set_state)
+        bot.state_signal.connect(self.set_state)
 
     def update_image(self, image_path):
         self.pixmap = QtGui.QPixmap(image_path)
@@ -42,7 +41,7 @@ class Cat_Image(QObject):
 
     def main(self):
         if(self.state == ""):
-            self.clear_image
+            self.clear_image()
             return
         frame_current = self.frame_min + self.frame
         zeroes = "".join("0" for i in range(2-math.floor(math.log10(max(frame_current, 1)))))
@@ -59,7 +58,13 @@ class Cat_Image(QObject):
         self.frame %= self.frame_max
         print("frame min ", self.frame_min)
         
+class Productive(BaseModel):
+    productive: bool
+    reasoning: str
+
 class Bot(QObject):
+    state_signal = pyqtSignal(str)
+    
     curr_screenshot = None
     prev_screenshot = None
 
@@ -67,12 +72,12 @@ class Bot(QObject):
     height = 0
 
     def __init__(self):
-        state_signal.emit("")
-        root = Tk()
-        root.withdraw()  # Hide the root window
-
-        self.width = root.winfo_screenwidth()
-        self.height = root.winfo_screenheight()
+        super().__init__()
+        self.state_signal.emit("")
+        # Get screen size from PyQt5
+        screen = app.primaryScreen()
+        self.width = screen.geometry().width()
+        self.height = screen.geometry().height()
 
     def capture_screenshot(self):
         """Capture the current screen."""
@@ -115,7 +120,7 @@ class Bot(QObject):
                     "prompt": prompt,
                     "images": [image_base64],
                     "stream": True,
-                    "json": {"type":"object", "properties":{"response":"string", "productive":"boolean"}}
+                    "format": Productive.model_json_schema()
                 },
                 timeout=300,
                 stream=True,
@@ -133,10 +138,20 @@ class Bot(QObject):
                 if line:
                     data = json.loads(line)
                     response_text += data.get("response", "")
-                    if "productive" in data:
-                        productive = data.get("productive")
             
-            return response_text, productive
+            # Try to parse the complete response as JSON
+            try:
+                parsed = json.loads(response_text)
+                if isinstance(parsed, dict):
+                    productive = parsed.get("productive", False)
+                    reasoning = parsed.get("reasoning", response_text)
+                else:
+                    reasoning = response_text
+            except json.JSONDecodeError:
+                # If not valid JSON, treat entire response as reasoning
+                reasoning = response_text
+            
+            return reasoning, productive
 
         except requests.exceptions.ConnectionError:
             print("❌ Cannot connect to Ollama on localhost:11434")
@@ -157,10 +172,16 @@ class Bot(QObject):
             if response_text:
                 print(f"\nResponse: {response_text}")
                 print(f"Productive: {productive}")
+                
+
+            if not productive:
+                self.state_signal.emit("Melt")
+            else:
+                self.state_signal.emit("")
 
 
 bot = Bot()
-cat = Cat_Image()
+cat = Cat_Image(bot)
 
 cat_main = QTimer()
 cat_main.timeout.connect(lambda: cat.main())
