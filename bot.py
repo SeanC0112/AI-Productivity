@@ -28,7 +28,7 @@ class Cat_Image(QObject):
         # Allow the background to be transparent
         self.label.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.label.setPixmap(self.pixmap)
-        self.label.move(0, 0)
+        self.label.move(100, 1000)
         state_signal.connect(self.set_state)
 
     def update_image(self, image_path):
@@ -53,7 +53,6 @@ class Cat_Image(QObject):
 
     def set_state(self, state):
         self.state = state
-        # self.frame = 0 #convert to ints
         self.frame_max = int(len(os.listdir(f"Cat/{state}")))
         print(sorted(os.listdir(f"Cat/{state}")))
         self.frame_min = int(sorted(os.listdir(f"Cat/{state}"))[0].split("tile")[1].split(".png")[0])
@@ -61,10 +60,19 @@ class Cat_Image(QObject):
         print("frame min ", self.frame_min)
         
 class Bot(QObject):
-    curr_screenshot = 0
+    curr_screenshot = None
+    prev_screenshot = None
+
+    width = 0
+    height = 0
 
     def __init__(self):
-        self.cat.set_state("")
+        state_signal.emit("")
+        root = Tk()
+        root.withdraw()  # Hide the root window
+
+        self.width = root.winfo_screenwidth()
+        self.height = root.winfo_screenheight()
 
     def capture_screenshot(self):
         """Capture the current screen."""
@@ -76,6 +84,26 @@ class Bot(QObject):
         image.save(buffer, format="PNG")
         img_str = base64.b64encode(buffer.getvalue()).decode()
         return img_str
+    
+    def check_has_changed(self, img1, img2, max_diff):
+        img1 = img1.convert("RGB")
+        img2 = img2.convert("RGB")
+
+        img1 = img1.load()
+        img2 = img2.load()
+
+        sum = 0
+
+        for x in range(100):
+            for y in range(100):
+                a = x * self.width // 100
+                b = y * self.height // 100
+                color1 = img1[a, b]
+                color2 = img2[a, b]
+                sum += (abs(color1[0] - color2[0]) + abs(color1[1] - color2[1]) + abs(color1[2] - color2[2])) / 3
+
+        avg_diff = sum / (100 * 100)
+        return avg_diff > max_diff
 
     def send_to_ollama(self, image_base64, prompt):
         """Send screenshot to Ollama vision model."""
@@ -118,13 +146,17 @@ class Bot(QObject):
             sys.exit(1)
 
     def main(self):
+        self.prev_screenshot = self.curr_screenshot
         self.curr_screenshot = self.capture_screenshot()
-        self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
-        response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive?")
-        
-        if response_text:
-            print(f"\nResponse: {response_text}")
-            print(f"Productive: {productive}")
+        self.prev_screenshot = self.curr_screenshot if self.prev_screenshot is None else self.prev_screenshot
+
+        if(self.check_has_changed(self.curr_screenshot, self.prev_screenshot, 20)):
+            self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
+            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive?")
+            
+            if response_text:
+                print(f"\nResponse: {response_text}")
+                print(f"Productive: {productive}")
 
 
 bot = Bot()
@@ -133,5 +165,9 @@ cat = Cat_Image()
 cat_main = QTimer()
 cat_main.timeout.connect(lambda: cat.main())
 cat_main.start(250)
+
+bot_main = QTimer()
+bot_main.timeout.connect(lambda: bot.main())
+bot_main.start(60000)
 
 sys.exit(app.exec())
