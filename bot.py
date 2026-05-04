@@ -54,10 +54,10 @@ class Cat_Image(QObject):
             self.clear_image()
             return
         self.frame_max = int(len(os.listdir(f"Cat/{state}")))
-        print(sorted(os.listdir(f"Cat/{state}")))
+        # print(sorted(os.listdir(f"Cat/{state}")))
         self.frame_min = int(sorted(os.listdir(f"Cat/{state}"))[0].split("tile")[1].split(".png")[0])
         self.frame %= self.frame_max
-        print("frame min ", self.frame_min)
+        # print("frame min ", self.frame_min)
         
 class Productive(BaseModel):
     productive: bool
@@ -171,7 +171,7 @@ class Bot(QObject):
             self.prev_screenshot = self.curr_screenshot
             self.cat.set_state("")
             self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
-            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be productive if it is school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs, maybe forms, discussing classroom experiences, etc, or doing a stem passion project like coding or robotics or cad, etc.")
+            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be productive if it is school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs, maybe forms, reflecting on classroom experiences or habit, etc, or doing a stem passion project like coding or robotics or cad, etc.")
             
             if response_text:
                 print(f"\nResponse: {response_text}")
