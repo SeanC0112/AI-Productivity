@@ -3,6 +3,7 @@ from PIL import ImageGrab
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QObject, QTimer
 from pydantic import BaseModel
+import random
 import sys
 import json
 import os
@@ -170,6 +171,7 @@ class Bot(QObject):
         if(self.check_has_changed(self.curr_screenshot, self.prev_screenshot, 20) or self.curr_screenshot == self.prev_screenshot):
             self.prev_screenshot = self.curr_screenshot
             self.cat.set_state("")
+            self.cat.clear_image()
             self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
             response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be productive if it is school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs, maybe forms, reflecting on classroom experiences or habit, etc, or doing a stem passion project like coding or robotics or cad, etc.")
             
@@ -179,7 +181,7 @@ class Bot(QObject):
 
 
             if not productive:
-                self.cat.set_state("Melt")
+                self.cat.set_state(random.choice(["Idle", "Scratch", "Die", "Melt"]))
             else:
                 self.cat.set_state("")
 
@@ -189,7 +191,7 @@ bot = Bot(cat)
 
 cat_main = QTimer()
 cat_main.timeout.connect(lambda: cat.main())
-cat_main.start(250)
+cat_main.start(100)
 
 bot_main = QTimer()
 bot_main.timeout.connect(lambda: bot.main())
