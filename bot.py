@@ -181,7 +181,7 @@ class Bot(QObject):
 
 
             if not productive:
-                self.cat.set_state(random.choice(["Idle", "Scratch", "Die", "Melt"]))
+                self.cat.set_state(random.choice(["Idle", "Scratch", "Melt"]))
             else:
                 self.cat.set_state("")
 
