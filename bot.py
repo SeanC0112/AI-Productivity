@@ -3,6 +3,7 @@ from PIL import ImageGrab
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QObject, QTimer
 from pydantic import BaseModel
+from subprocess import Popen
 import random
 import sys
 import json
@@ -120,6 +121,7 @@ class Bot(QObject):
                 "http://localhost:11434/api/generate",
                 json={
                     "model": "gemma4:e2b",
+                    # "model": "qwen3.5:0.8b",
                     "prompt": prompt,
                     "images": [image_base64],
                     "stream": True,
@@ -159,6 +161,7 @@ class Bot(QObject):
         except requests.exceptions.ConnectionError:
             print("❌ Cannot connect to Ollama on localhost:11434")
             sys.exit(1)
+            
         except Exception as e:
             print(f"❌ Error: {e}")
             sys.exit(1)
@@ -173,10 +176,11 @@ class Bot(QObject):
             self.cat.set_state("")
             self.cat.clear_image()
             self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
-            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be productive if it is school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs writing/taking notes (possibly but not always for something for a humanities class like english or history), maybe forms, reflecting on classroom experiences or habit, planning a school project, etc, or doing a stem passion project like coding or robotics or cad, etc.")
+            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be productive if it is school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs writing/taking notes (possibly but not always for something for a humanities class like english or history), maybe forms, reflecting on classroom experiences or habit, planning a school project, etc [doesn't need to be super stem focused as long as it is important for doing school], or doing a stem passion project like coding or robotics or cad, etc [code doesn't have to be super organized/make much sense as long as it is code].")
             
             if response_text:
                 print(f"\nResponse: {response_text}")
+            if productive is not None:
                 print(f"Productive: {productive}")
 
 
@@ -185,6 +189,14 @@ class Bot(QObject):
             else:
                 self.cat.set_state("")
 
+try:
+    Popen(["ollama", "serve"])
+except Exception as e:
+    if "address already in use" in str(e):
+        print("✅ Ollama is already running.")
+    else:
+        print(f"❌ Error starting Ollama: {e}")
+        sys.exit(1)
 
 cat = Cat_Image()
 bot = Bot(cat)
