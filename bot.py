@@ -20,6 +20,8 @@ class Cat_Image(QObject):
     frame = 0
     frame_max = 1
     frame_min = 0
+    screen_width = None
+    screen_height = None
 
     def __init__(self):
         super().__init__()
@@ -31,6 +33,8 @@ class Cat_Image(QObject):
         self.label.move(50, 50)
 
     def update_image(self, image_path):
+        if self.screen_width is not None and self.screen_height is not None:
+            self.label.move(random.randint(50, self.screen_width - self.pixmap.width() - 50), random.randint(50, self.screen_height - self.pixmap.height() - 50))
         self.pixmap = QtGui.QPixmap(image_path)
         self.label.setPixmap(self.pixmap)
         self.label.show()
@@ -60,6 +64,10 @@ class Cat_Image(QObject):
         self.frame_min = int(sorted(os.listdir(f"Cat/{state}"))[0].split("tile")[1].split(".png")[0])
         self.frame %= self.frame_max
         # print("frame min ", self.frame_min)
+
+    def set_screen_size(self, width, height):
+        self.screen_width = width
+        self.screen_height = height
         
 class Productive(BaseModel):
     productive: bool
@@ -82,6 +90,7 @@ class Bot(QObject):
         screen = app.primaryScreen()
         self.width = screen.geometry().width()
         self.height = screen.geometry().height()
+        self.cat.set_screen_size(self.width, self.height)
 
     def capture_screenshot(self):
         """Capture the current screen."""
