@@ -33,8 +33,6 @@ class Cat_Image(QObject):
         self.label.move(50, 50)
 
     def update_image(self, image_path):
-        if self.screen_width is not None and self.screen_height is not None:
-            self.label.move(random.randint(50, self.screen_width - self.pixmap.width() - 50), random.randint(50, self.screen_height - self.pixmap.height() - 50))
         self.pixmap = QtGui.QPixmap(image_path)
         self.label.setPixmap(self.pixmap)
         self.label.show()
@@ -63,6 +61,9 @@ class Cat_Image(QObject):
         # print(sorted(os.listdir(f"Cat/{state}")))
         self.frame_min = int(sorted(os.listdir(f"Cat/{state}"))[0].split("tile")[1].split(".png")[0])
         self.frame %= self.frame_max
+        if self.screen_width is not None and self.screen_height is not None:
+            self.label.move(random.randint(50, self.screen_width - self.pixmap.width() - 50), random.randint(50, self.screen_height - self.pixmap.height() - 50))
+
         # print("frame min ", self.frame_min)
 
     def set_screen_size(self, width, height):
