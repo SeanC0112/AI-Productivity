@@ -133,7 +133,7 @@ class Bot(QObject):
                     "model": "gemma4:e2b",
                     # "model": "qwen3.5:0.8b",
                     "prompt": prompt,
-                    "images": [image_base64],
+                    "images": [img for img in [image_base64] if img],  # Only include non-empty images
                     "stream": True,
                     "format": Productive.model_json_schema()
                 },
@@ -182,11 +182,16 @@ class Bot(QObject):
         self.prev_screenshot = self.curr_screenshot if self.prev_screenshot is None else self.prev_screenshot
 
         if(self.check_has_changed(self.curr_screenshot, self.prev_screenshot, 20) or self.curr_screenshot == self.prev_screenshot):
-            self.prev_screenshot = self.curr_screenshot
             self.cat.set_state("")
             self.cat.clear_image()
-            self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
-            response_text, productive = self.send_to_ollama(self.curr_screenshot, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be productive if it is school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs writing/taking notes (possibly but not always for something for a humanities class like english or history), maybe forms, reflecting on classroom experiences or habit, planning a school project, etc [doesn't need to be super stem focused as long as it is important for doing school], or doing a stem passion project like coding or robotics or cad, etc [code doesn't have to be super organized/make much sense as long as it is code]. A pathway to being productive is productive, if what is centered could be productive (ie docs, slides, procutive tools related to schoolwork) and isnt an offtopic page like a game.")
+            screenshots = []
+            for i in range(3):
+                self.curr_screenshot = self.capture_screenshot()
+                self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
+                screenshots.append(self.curr_screenshot)
+                QtCore.QThread.msleep(1000)  # Sleep for 1 second between screenshots
+            self.prev_screenshot = self.curr_screenshot
+            response_text, productive = self.send_to_ollama(screenshots, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be productive if it is school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs writing/taking notes (possibly but not always for something for a humanities class like english or history), maybe forms, reflecting on classroom experiences or habit, planning a school project, etc [doesn't need to be super stem focused as long as it is important for doing school], or doing a stem passion project like coding or robotics or cad, etc [code doesn't have to be super organized/make much sense as long as it is code]. A pathway to being productive is productive, if what is centered could be productive (ie docs, slides, procutive tools related to schoolwork) and isnt an offtopic page like a game.")
             
             if response_text:
                 print(f"\nResponse: {response_text}")
