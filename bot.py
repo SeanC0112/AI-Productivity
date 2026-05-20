@@ -9,6 +9,9 @@ import sys
 import json
 import os
 import math
+import ctypes
+import objc
+from Cocoa import NSApp
 
 
 app = QtWidgets.QApplication(sys.argv)
@@ -35,6 +38,7 @@ class Cat_Image(QObject):
     def update_image(self, image_path):
         self.pixmap = QtGui.QPixmap(image_path)
         self.label.setPixmap(self.pixmap)
+        self.set_window_above_fullscreen(self.label)
         self.label.show()
 
     def clear_image(self):
@@ -69,6 +73,12 @@ class Cat_Image(QObject):
     def set_screen_size(self, width, height):
         self.screen_width = width
         self.screen_height = height
+
+    def set_window_above_fullscreen(self,widget):
+        NSScreenSaverWindowLevel = 1000
+        ns_view = objc.objc_object(c_void_p=widget.winId().__int__())
+        ns_window = ns_view.window()  # <-- get the NSWindow from the NSView
+        ns_window.setLevel_(NSScreenSaverWindowLevel)
         
 class Productive(BaseModel):
     productive: bool
@@ -191,7 +201,7 @@ class Bot(QObject):
                 self.curr_screenshot = self.screenshot_to_base64(self.curr_screenshot)
                 screenshots.append(self.curr_screenshot)
                 QtCore.QThread.msleep(1000)  # Sleep for 1 second between screenshots
-            response_text, productive = self.send_to_ollama(screenshots, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be productive if it is school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs writing/taking notes (possibly but not always for something for a humanities class like english or history), maybe forms, reflecting on classroom experiences or habit, planning a school project, etc [doesn't need to be super stem focused as long as it is important for doing school], or doing a stem passion project like coding or robotics or cad, etc [code doesn't have to be super organized/make much sense as long as it is code]. A pathway to being productive is productive, if what is centered could be productive (ie docs, slides, procutive tools related to schoolwork) and isnt an offtopic page like a game.")
+            response_text, productive = self.send_to_ollama(screenshots, "Is this productive for a high school student who wants to get into MIT and therefore should either be doing his school work or working on STEM passion projects? It would be productive if it is school work, which would be looking at blackbaud (the school site for lick-wilmerding), google docs writing/taking notes (possibly but not always for something for a humanities class like english or history), maybe forms, reflecting on classroom experiences or habit, planning a school project, etc [doesn't need to be super stem focused as long as it is important for doing school], or doing a stem passion project like coding or robotics or cad, etc [code doesn't have to be super organized/make much sense as long as it is code]. A pathway to being productive is productive, if what is centered could be productive (ie docs, slides, procutive tools related to schoolwork) and isnt an offtopic page like a game or social media.")
             
             if response_text:
                 print(f"\nResponse: {response_text}")
